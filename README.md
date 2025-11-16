@@ -77,8 +77,8 @@ A comprehensive real-time system monitoring dashboard for NVIDIA Spark systems, 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Hilo-Hilo/system-monitoring-dashboard.git
-cd system-monitoring-dashboard
+git clone https://github.com/Hilo-Hilo/nvidia-spark-monitoring.git
+cd nvidia-spark-monitoring
 ```
 
 ### 2. Configure Environment Variables (Optional)
@@ -472,4 +472,4 @@ This project is provided as-is for monitoring your NVIDIA Spark system.
 ## Support
 
 For issues, questions, or contributions, please visit the GitHub repository:
-https://github.com/Hilo-Hilo/system-monitoring-dashboard
+https://github.com/Hilo-Hilo/nvidia-spark-monitoring
