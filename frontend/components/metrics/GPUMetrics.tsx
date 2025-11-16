@@ -23,7 +23,7 @@ export function GPUMetrics() {
 
   useEffect(() => {
     if (metrics && metrics.gpus.length > 0) {
-      const gpuData: Record<string, any> = { timestamp: metrics.timestamp };
+      const gpuData: { timestamp: string; [key: string]: any } = { timestamp: metrics.timestamp };
       metrics.gpus.forEach((gpu) => {
         gpuData[`gpu${gpu.index}_utilization`] = gpu.utilization;
         gpuData[`gpu${gpu.index}_memory`] = gpu.memory_percent;
