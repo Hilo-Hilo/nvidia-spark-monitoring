@@ -12,68 +12,114 @@ interface DateRangePickerProps {
   timezone?: string;
 }
 
-// Format date in specified timezone
-function formatInTimezone(date: Date, timezone: string, formatStr: string): string {
-  if (timezone === 'UTC') {
-    return format(date, formatStr);
-  }
+/**
+ * Convert a UTC Date to a string in the format required by datetime-local input
+ * The datetime-local input expects a string in local timezone format, but we need to
+ * display the UTC time in the input field correctly.
+ */
+function formatUTCForInput(date: Date): string {
+  // Get UTC components
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  const hours = String(date.getUTCHours()).padStart(2, '0');
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0');
   
-  try {
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-    
-    const parts = formatter.formatToParts(date);
-    const year = parts.find(p => p.type === 'year')?.value;
-    const month = parts.find(p => p.type === 'month')?.value;
-    const day = parts.find(p => p.type === 'day')?.value;
-    const hour = parts.find(p => p.type === 'hour')?.value;
-    const minute = parts.find(p => p.type === 'minute')?.value;
-    
-    if (formatStr === "yyyy-MM-dd'T'HH:mm") {
-      return `${year}-${month}-${day}T${hour}:${minute}`;
-    }
-    
-    // For other formats, use a simpler approach
-    const dateStr = `${year}-${month}-${day} ${hour}:${minute}`;
-    return format(new Date(dateStr), formatStr);
-  } catch (e) {
-    // Fallback to UTC if timezone is invalid
-    return format(date, formatStr);
-  }
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+/**
+ * Parse a datetime-local input value as UTC
+ * The input gives us a string that represents a local time, but we treat it as UTC
+ */
+function parseInputAsUTC(value: string): Date {
+  // Parse the input string (which is in YYYY-MM-DDTHH:mm format)
+  // Treat it as UTC time
+  const [datePart, timePart] = value.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hours, minutes] = timePart.split(':').map(Number);
+  
+  // Create a Date object in UTC
+  return new Date(Date.UTC(year, month - 1, day, hours, minutes));
 }
 
 // Format date for display in timezone
 function formatDateForDisplay(date: Date, timezone: string): string {
   if (timezone === 'UTC') {
-    return format(date, 'PPpp');
+    return format(date, 'PPpp') + ' UTC';
   }
   
   try {
-    return new Intl.DateTimeFormat('en-US', {
+    const formatter = new Intl.DateTimeFormat('en-US', {
       timeZone: timezone,
       dateStyle: 'full',
       timeStyle: 'short',
-    }).format(date);
+      timeZoneName: 'short',
+    });
+    return formatter.format(date);
   } catch (e) {
-    return format(date, 'PPpp');
+    return format(date, 'PPpp') + ' UTC';
   }
+}
+
+/**
+ * Get current time as UTC Date
+ */
+function getCurrentUTC(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    now.getUTCHours(),
+    now.getUTCMinutes(),
+    now.getUTCSeconds(),
+    now.getUTCMilliseconds()
+  ));
+}
+
+/**
+ * Subtract hours from a UTC date
+ */
+function subHoursUTC(date: Date, hours: number): Date {
+  const result = new Date(date);
+  result.setUTCHours(result.getUTCHours() - hours);
+  return result;
+}
+
+/**
+ * Subtract days from a UTC date
+ */
+function subDaysUTC(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setUTCDate(result.getUTCDate() - days);
+  return result;
+}
+
+/**
+ * Subtract weeks from a UTC date
+ */
+function subWeeksUTC(date: Date, weeks: number): Date {
+  return subDaysUTC(date, weeks * 7);
+}
+
+/**
+ * Subtract months from a UTC date
+ */
+function subMonthsUTC(date: Date, months: number): Date {
+  const result = new Date(date);
+  result.setUTCMonth(result.getUTCMonth() - months);
+  return result;
 }
 
 export function DateRangePicker({ startTime, endTime, onRangeChange, timezone = 'UTC' }: DateRangePickerProps) {
   const [showCustom, setShowCustom] = useState(false);
 
   const presets = [
-    { label: 'Last Hour', getRange: () => ({ start: subHours(new Date(), 1), end: new Date() }) },
-    { label: 'Last 24 Hours', getRange: () => ({ start: subDays(new Date(), 1), end: new Date() }) },
-    { label: 'Last Week', getRange: () => ({ start: subWeeks(new Date(), 1), end: new Date() }) },
-    { label: 'Last Month', getRange: () => ({ start: subMonths(new Date(), 1), end: new Date() }) },
+    { label: 'Last Hour', getRange: () => ({ start: subHoursUTC(getCurrentUTC(), 1), end: getCurrentUTC() }) },
+    { label: 'Last 24 Hours', getRange: () => ({ start: subDaysUTC(getCurrentUTC(), 1), end: getCurrentUTC() }) },
+    { label: 'Last Week', getRange: () => ({ start: subWeeksUTC(getCurrentUTC(), 1), end: getCurrentUTC() }) },
+    { label: 'Last Month', getRange: () => ({ start: subMonthsUTC(getCurrentUTC(), 1), end: getCurrentUTC() }) },
   ];
 
   const handlePreset = (preset: typeof presets[0]) => {
@@ -83,14 +129,16 @@ export function DateRangePicker({ startTime, endTime, onRangeChange, timezone = 
   };
 
   const handleCustomStart = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newStart = new Date(e.target.value);
+    // Parse the input value as UTC
+    const newStart = parseInputAsUTC(e.target.value);
     if (!isNaN(newStart.getTime())) {
       onRangeChange(newStart, endTime);
     }
   };
 
   const handleCustomEnd = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newEnd = new Date(e.target.value);
+    // Parse the input value as UTC
+    const newEnd = parseInputAsUTC(e.target.value);
     if (!isNaN(newEnd.getTime())) {
       onRangeChange(startTime, newEnd);
     }
@@ -128,7 +176,7 @@ export function DateRangePicker({ startTime, endTime, onRangeChange, timezone = 
               <label className="block text-sm font-medium mb-2">Start Time (UTC)</label>
               <input
                 type="datetime-local"
-                value={format(startTime, "yyyy-MM-dd'T'HH:mm")}
+                value={formatUTCForInput(startTime)}
                 onChange={handleCustomStart}
                 className="w-full px-3 py-2 border rounded-md"
               />
@@ -140,7 +188,7 @@ export function DateRangePicker({ startTime, endTime, onRangeChange, timezone = 
               <label className="block text-sm font-medium mb-2">End Time (UTC)</label>
               <input
                 type="datetime-local"
-                value={format(endTime, "yyyy-MM-dd'T'HH:mm")}
+                value={formatUTCForInput(endTime)}
                 onChange={handleCustomEnd}
                 className="w-full px-3 py-2 border rounded-md"
               />

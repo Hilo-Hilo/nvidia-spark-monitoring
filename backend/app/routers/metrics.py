@@ -32,8 +32,14 @@ async def get_disk_metrics():
 
 @router.get("/network")
 async def get_network_metrics():
-    """Get network metrics only."""
+    """Get network metrics with live rates calculated directly from system."""
     return system_monitor.get_network_metrics()
+
+
+@router.get("/network/pernic")
+async def get_network_metrics_pernic():
+    """Get per-interface network metrics with rates."""
+    return system_monitor.get_network_metrics_pernic()
 
 
 @router.get("/gpu")

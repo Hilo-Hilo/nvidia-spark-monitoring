@@ -19,10 +19,6 @@ function formatTimestamp(value: string | number, timezone: string = 'UTC'): stri
   const date = new Date(value);
   if (isNaN(date.getTime())) return String(value);
   
-  if (timezone === 'UTC') {
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  }
-  
   try {
     return date.toLocaleTimeString('en-US', {
       timeZone: timezone,
@@ -30,7 +26,12 @@ function formatTimestamp(value: string | number, timezone: string = 'UTC'): stri
       minute: '2-digit',
     });
   } catch (e) {
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    // Fallback to UTC if timezone is invalid
+    return date.toLocaleTimeString('en-US', {
+      timeZone: 'UTC',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   }
 }
 
@@ -41,10 +42,6 @@ function formatFullTimestamp(value: string | number, timezone: string = 'UTC'): 
   const date = new Date(value);
   if (isNaN(date.getTime())) return String(value);
   
-  if (timezone === 'UTC') {
-    return date.toLocaleString('en-US');
-  }
-  
   try {
     return date.toLocaleString('en-US', {
       timeZone: timezone,
@@ -52,7 +49,12 @@ function formatFullTimestamp(value: string | number, timezone: string = 'UTC'): 
       timeStyle: 'short',
     });
   } catch (e) {
-    return date.toLocaleString('en-US');
+    // Fallback to UTC if timezone is invalid
+    return date.toLocaleString('en-US', {
+      timeZone: 'UTC',
+      dateStyle: 'short',
+      timeStyle: 'short',
+    });
   }
 }
 

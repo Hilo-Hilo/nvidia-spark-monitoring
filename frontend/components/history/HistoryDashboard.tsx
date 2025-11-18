@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { subDays } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useHistoricalData } from '@/hooks/useHistoricalData';
 import { DateRangePicker } from './DateRangePicker';
@@ -10,6 +9,7 @@ import { MemoryMetricsChart } from './MemoryMetricsChart';
 import { DiskMetricsChart } from './DiskMetricsChart';
 import { NetworkMetricsChart } from './NetworkMetricsChart';
 import { GPUMetricsChart } from './GPUMetricsChart';
+import { preferences, type NetworkUnit } from '@/lib/preferences';
 
 // Common timezones
 const TIMEZONES = [
@@ -25,40 +25,60 @@ const TIMEZONES = [
   { value: 'Australia/Sydney', label: 'Sydney (AEDT/AEST)' },
 ];
 
-type NetworkUnit = 'MB/s' | 'Mbps';
+/**
+ * Get current time as UTC Date
+ */
+function getCurrentUTC(): Date {
+  const now = new Date();
+  return new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    now.getUTCHours(),
+    now.getUTCMinutes(),
+    now.getUTCSeconds(),
+    now.getUTCMilliseconds()
+  ));
+}
+
+/**
+ * Subtract days from a UTC date
+ */
+function subDaysUTC(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setUTCDate(result.getUTCDate() - days);
+  return result;
+}
 
 export function HistoryDashboard() {
-  const [startTime, setStartTime] = useState(subDays(new Date(), 1));
-  const [endTime, setEndTime] = useState(new Date());
+  const [startTime, setStartTime] = useState(() => subDaysUTC(getCurrentUTC(), 1));
+  const [endTime, setEndTime] = useState(() => getCurrentUTC());
   const [historicalData, setHistoricalData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [timezone, setTimezone] = useState<string>(() => {
-    // Try to get from localStorage, default to UTC
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('history_timezone') || 'UTC';
-    }
-    return 'UTC';
+    return preferences.getTimezone();
   });
   const [networkUnit, setNetworkUnit] = useState<NetworkUnit>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('network_unit') as NetworkUnit) || 'MB/s';
-    }
-    return 'MB/s';
+    return preferences.getNetworkUnit();
   });
   const { fetchHistoricalMetrics, loading, error } = useHistoricalData();
 
-  // Save timezone preference
+  // Initialize timezone on mount - ensure stored preference is loaded
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('history_timezone', timezone);
+    const storedTimezone = preferences.getTimezone();
+    if (storedTimezone && storedTimezone !== timezone) {
+      setTimezone(storedTimezone);
     }
+  }, []); // Only run on mount
+
+  // Save timezone preference when it changes
+  useEffect(() => {
+    preferences.setTimezone(timezone);
   }, [timezone]);
 
   // Save network unit preference
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('network_unit', networkUnit);
-    }
+    preferences.setNetworkUnit(networkUnit);
   }, [networkUnit]);
 
   useEffect(() => {

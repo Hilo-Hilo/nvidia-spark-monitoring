@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { auth } from './auth';
 
 const getBrowserBaseUrl = () => {
   if (typeof window === 'undefined') {
@@ -27,7 +28,7 @@ const apiClient = axios.create({
 // Add token to requests if available
 apiClient.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('auth_token');
+    const token = auth.getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -61,6 +62,10 @@ export interface SystemMetrics {
     bytes_recv: number;
     packets_sent: number;
     packets_recv: number;
+    bytes_sent_rate: number;
+    bytes_recv_rate: number;
+    packets_sent_rate: number;
+    packets_recv_rate: number;
   };
   gpus: Array<{
     index: number;
@@ -92,6 +97,7 @@ export const api = {
     getMemory: () => apiClient.get('/metrics/memory'),
     getDisk: () => apiClient.get('/metrics/disk'),
     getNetwork: () => apiClient.get('/metrics/network'),
+    getNetworkPerNic: () => apiClient.get('/metrics/network/pernic'),
     getGPU: () => apiClient.get('/metrics/gpu'),
   },
   

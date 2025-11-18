@@ -30,11 +30,16 @@ class DiskMetrics(BaseModel):
 
 
 class NetworkMetrics(BaseModel):
-    """Network metrics model."""
+    """Network metrics model with live rates from system."""
     bytes_sent: float
     bytes_recv: float
     packets_sent: float
     packets_recv: float
+    # Live rates calculated directly from system (bytes/second, packets/second)
+    bytes_sent_rate: float = 0.0
+    bytes_recv_rate: float = 0.0
+    packets_sent_rate: float = 0.0
+    packets_recv_rate: float = 0.0
 
 
 class GPUMetrics(BaseModel):

@@ -1,52 +1,21 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { InfoIcon } from '@/components/ui/info-icon';
 import { useMetrics } from '@/hooks/useMetrics';
-
-type NetworkUnit = 'MB/s' | 'Mbps';
+import { preferences, type NetworkUnit } from '@/lib/preferences';
 
 export function Dashboard() {
   const { metrics, loading, error } = useMetrics();
-  const [networkRates, setNetworkRates] = useState<{ sent: number; recv: number } | null>(null);
   const [networkUnit, setNetworkUnit] = useState<NetworkUnit>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('network_unit') as NetworkUnit) || 'MB/s';
-    }
-    return 'MB/s';
+    return preferences.getNetworkUnit();
   });
-  const prevNetworkRef = useRef<{ sent: number; recv: number; timestamp: number } | null>(null);
 
   // Save network unit preference
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('network_unit', networkUnit);
-    }
+    preferences.setNetworkUnit(networkUnit);
   }, [networkUnit]);
-
-  // Calculate network rates
-  useEffect(() => {
-    if (metrics) {
-      const metricsTime = new Date(metrics.timestamp).getTime();
-      const current = {
-        sent: metrics.network.bytes_sent,
-        recv: metrics.network.bytes_recv,
-        timestamp: metricsTime,
-      };
-
-      if (prevNetworkRef.current) {
-        const timeDiff = (metricsTime - prevNetworkRef.current.timestamp) / 1000; // seconds
-        if (timeDiff > 0 && timeDiff < 10) { // Only calculate if time difference is reasonable (avoid large gaps)
-          const sentRate = (current.sent - prevNetworkRef.current.sent) / timeDiff; // bytes per second
-          const recvRate = (current.recv - prevNetworkRef.current.recv) / timeDiff; // bytes per second
-          setNetworkRates({ sent: Math.max(0, sentRate), recv: Math.max(0, recvRate) });
-        }
-      }
-
-      prevNetworkRef.current = current;
-    }
-  }, [metrics]);
 
   // Format network rate
   const formatNetworkRate = (bytesPerSecond: number): string => {
@@ -174,27 +143,23 @@ export function Dashboard() {
                   <option value="MB/s">MB/s</option>
                   <option value="Mbps">Mbps</option>
                 </select>
-                <InfoIcon content="Network I/O shows the current data transfer rate (bytes per second). 'Sent' is the rate of data transmitted from this system. 'Received' is the rate of data received by this system. Rates are calculated from cumulative counters and automatically adapt units (KB/s, MB/s, or Kbps, Mbps) based on the transfer speed. You can toggle between MB/s (megabytes per second) and Mbps (megabits per second) using the dropdown." />
+                <InfoIcon content="Network I/O shows live data transfer rates calculated directly from the system using native Linux /proc/net/dev. 'Sent' is the rate of data transmitted from this system. 'Received' is the rate of data received by this system. Rates are calculated on the backend from system counters and automatically adapt units (KB/s, MB/s, or Kbps, Mbps) based on the transfer speed. You can toggle between MB/s (megabytes per second) and Mbps (megabits per second) using the dropdown." />
               </div>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {networkRates ? (
-                <>
-                  <p className="text-sm text-muted-foreground">
-                    Sent: <span className="text-foreground font-semibold">{formatNetworkRate(networkRates.sent)}</span>
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Received: <span className="text-foreground font-semibold">{formatNetworkRate(networkRates.recv)}</span>
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm text-muted-foreground">Calculating network rates...</p>
-              )}
+              {/* Use backend-calculated rates directly from system */}
+              <p className="text-sm text-muted-foreground">
+                Sent: <span className="text-foreground font-semibold">{formatNetworkRate(metrics.network.bytes_sent_rate)}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Received: <span className="text-foreground font-semibold">{formatNetworkRate(metrics.network.bytes_recv_rate)}</span>
+              </p>
               <div className="pt-2 border-t text-xs text-muted-foreground">
                 <p>Total Sent: {(metrics.network.bytes_sent / 1024 / 1024).toFixed(2)} MB ({metrics.network.packets_sent.toLocaleString()} packets)</p>
                 <p>Total Received: {(metrics.network.bytes_recv / 1024 / 1024).toFixed(2)} MB ({metrics.network.packets_recv.toLocaleString()} packets)</p>
+                <p className="pt-1 text-xs">Packets: {metrics.network.packets_sent_rate.toFixed(1)} sent/s, {metrics.network.packets_recv_rate.toFixed(1)} recv/s</p>
               </div>
             </div>
           </CardContent>

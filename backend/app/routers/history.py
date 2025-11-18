@@ -9,8 +9,19 @@ from app.auth import get_current_active_user
 from app.models.metrics import HistoricalMetricsRequest, HistoricalMetricsResponse
 import json
 from collections import defaultdict
+from typing import Optional
 
 router = APIRouter()
+
+
+def round_metric_value(value: Optional[float], decimal_places: int = 2) -> Optional[float]:
+    """
+    Round a metric value to specified decimal places.
+    Returns None if value is None, otherwise returns rounded value.
+    """
+    if value is None:
+        return None
+    return round(value, decimal_places)
 
 
 def aggregate_metrics(snapshots, time_range_hours):
@@ -62,24 +73,24 @@ def aggregate_metrics(snapshots, time_range_hours):
         # Use first snapshot for non-averaged values
         first = bucket_snapshots[0]
         
-        # Create aggregated snapshot
+        # Create aggregated snapshot with rounded values
         agg_snapshot = MetricSnapshot(
             timestamp=bucket_time,
-            cpu_percent=sum(cpu_percents) / len(cpu_percents) if cpu_percents else None,
+            cpu_percent=round_metric_value(sum(cpu_percents) / len(cpu_percents) if cpu_percents else None, 2),
             cpu_count=first.cpu_count,
-            cpu_freq_current=sum(cpu_freqs) / len(cpu_freqs) if cpu_freqs else None,
-            memory_total=first.memory_total,
-            memory_available=sum(memory_availables) / len(memory_availables) if memory_availables else None,
-            memory_percent=sum(memory_percents) / len(memory_percents) if memory_percents else None,
-            memory_used=sum(memory_useds) / len(memory_useds) if memory_useds else None,
-            disk_total=first.disk_total,
-            disk_used=sum(disk_useds) / len(disk_useds) if disk_useds else None,
-            disk_free=first.disk_free,
-            disk_percent=sum(disk_percents) / len(disk_percents) if disk_percents else None,
-            network_bytes_sent=sum(network_bytes_sent) / len(network_bytes_sent) if network_bytes_sent else None,
-            network_bytes_recv=sum(network_bytes_recv) / len(network_bytes_recv) if network_bytes_recv else None,
-            network_packets_sent=sum(network_packets_sent) / len(network_packets_sent) if network_packets_sent else None,
-            network_packets_recv=sum(network_packets_recv) / len(network_packets_recv) if network_packets_recv else None,
+            cpu_freq_current=round_metric_value(sum(cpu_freqs) / len(cpu_freqs) if cpu_freqs else None, 2),
+            memory_total=round_metric_value(first.memory_total, 0),
+            memory_available=round_metric_value(sum(memory_availables) / len(memory_availables) if memory_availables else None, 0),
+            memory_percent=round_metric_value(sum(memory_percents) / len(memory_percents) if memory_percents else None, 2),
+            memory_used=round_metric_value(sum(memory_useds) / len(memory_useds) if memory_useds else None, 0),
+            disk_total=round_metric_value(first.disk_total, 0),
+            disk_used=round_metric_value(sum(disk_useds) / len(disk_useds) if disk_useds else None, 0),
+            disk_free=round_metric_value(first.disk_free, 0),
+            disk_percent=round_metric_value(sum(disk_percents) / len(disk_percents) if disk_percents else None, 2),
+            network_bytes_sent=round_metric_value(sum(network_bytes_sent) / len(network_bytes_sent) if network_bytes_sent else None, 0),
+            network_bytes_recv=round_metric_value(sum(network_bytes_recv) / len(network_bytes_recv) if network_bytes_recv else None, 0),
+            network_packets_sent=round_metric_value(sum(network_packets_sent) / len(network_packets_sent) if network_packets_sent else None, 0),
+            network_packets_recv=round_metric_value(sum(network_packets_recv) / len(network_packets_recv) if network_packets_recv else None, 0),
             gpu_data=first.gpu_data  # Use first GPU data (could aggregate this too)
         )
         aggregated.append(agg_snapshot)
@@ -123,27 +134,27 @@ async def get_historical_metrics(
         metric_data = {
             "timestamp": snapshot.timestamp.isoformat(),
             "cpu": {
-                "percent": snapshot.cpu_percent,
+                "percent": round_metric_value(snapshot.cpu_percent, 2),
                 "count": snapshot.cpu_count,
-                "freq_current": snapshot.cpu_freq_current
+                "freq_current": round_metric_value(snapshot.cpu_freq_current, 2)
             },
             "memory": {
-                "total": snapshot.memory_total,
-                "available": snapshot.memory_available,
-                "used": snapshot.memory_used,
-                "percent": snapshot.memory_percent
+                "total": round_metric_value(snapshot.memory_total, 0),
+                "available": round_metric_value(snapshot.memory_available, 0),
+                "used": round_metric_value(snapshot.memory_used, 0),
+                "percent": round_metric_value(snapshot.memory_percent, 2)
             },
             "disk": {
-                "total": snapshot.disk_total,
-                "used": snapshot.disk_used,
-                "free": snapshot.disk_free,
-                "percent": snapshot.disk_percent
+                "total": round_metric_value(snapshot.disk_total, 0),
+                "used": round_metric_value(snapshot.disk_used, 0),
+                "free": round_metric_value(snapshot.disk_free, 0),
+                "percent": round_metric_value(snapshot.disk_percent, 2)
             },
             "network": {
-                "bytes_sent": snapshot.network_bytes_sent,
-                "bytes_recv": snapshot.network_bytes_recv,
-                "packets_sent": snapshot.network_packets_sent,
-                "packets_recv": snapshot.network_packets_recv
+                "bytes_sent": round_metric_value(snapshot.network_bytes_sent, 0),
+                "bytes_recv": round_metric_value(snapshot.network_bytes_recv, 0),
+                "packets_sent": round_metric_value(snapshot.network_packets_sent, 0),
+                "packets_recv": round_metric_value(snapshot.network_packets_recv, 0)
             }
         }
         

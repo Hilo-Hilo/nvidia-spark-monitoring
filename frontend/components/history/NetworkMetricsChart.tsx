@@ -146,9 +146,6 @@ export function NetworkMetricsChart({ data, loading, timezone = 'UTC', networkUn
               value={networkUnit}
               onChange={(e) => {
                 const newUnit = e.target.value as NetworkUnit;
-                if (typeof window !== 'undefined') {
-                  localStorage.setItem('network_unit', newUnit);
-                }
                 if (onNetworkUnitChange) {
                   onNetworkUnitChange(newUnit);
                 }
