@@ -4,6 +4,8 @@ A comprehensive real-time system monitoring dashboard for NVIDIA Spark systems. 
 
 ## Screenshots
 
+The dashboard provides real-time monitoring with an intuitive interface:
+
 ![Dashboard Overview](./images/1.png)
 
 ![System Information and Network Details](./images/2.png)
