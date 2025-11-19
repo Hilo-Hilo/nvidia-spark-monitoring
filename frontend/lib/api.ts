@@ -79,6 +79,15 @@ export interface SystemMetrics {
   }>;
 }
 
+export interface NetworkInterface {
+  name: string;
+  ipv4_addresses: string[];
+  ipv6_addresses: string[];
+  mac_address?: string;
+  is_up: boolean;
+  mtu?: number;
+}
+
 export interface SystemInfo {
   hostname: string;
   os: string;
@@ -91,6 +100,8 @@ export interface SystemInfo {
   total_memory: number;
   uptime: number;
   boot_time: string;
+  network_interfaces?: NetworkInterface[];
+  public_ip?: string;
 }
 
 export interface ProcessInfo {

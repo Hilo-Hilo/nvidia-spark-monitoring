@@ -7,9 +7,11 @@ import os
 import logging
 import subprocess
 import re
+import socket
+import urllib.request
 from typing import List, Optional, Dict
 from app.models.metrics import (
-    CPUMetrics, MemoryMetrics, DiskMetrics, NetworkMetrics, GPUMetrics, SystemMetrics, SystemInfo
+    CPUMetrics, MemoryMetrics, DiskMetrics, NetworkMetrics, GPUMetrics, SystemMetrics, SystemInfo, NetworkInterface
 )
 from datetime import datetime
 
@@ -284,6 +286,83 @@ class SystemMonitor:
         
         return gpus
     
+    def get_network_interfaces(self) -> List[NetworkInterface]:
+        """Get network interface information (like ifconfig)."""
+        interfaces = []
+        try:
+            net_if_addrs = psutil.net_if_addrs()
+            net_if_stats = psutil.net_if_stats()
+            
+            for interface_name, addrs in net_if_addrs.items():
+                # Skip loopback interfaces
+                if interface_name.startswith('lo'):
+                    continue
+                
+                ipv4_addresses = []
+                ipv6_addresses = []
+                mac_address = None
+                
+                for addr in addrs:
+                    if addr.family == socket.AF_INET:
+                        ipv4_addresses.append(addr.address)
+                    elif addr.family == socket.AF_INET6:
+                        # Skip link-local IPv6 addresses
+                        if not addr.address.startswith('fe80:'):
+                            ipv6_addresses.append(addr.address)
+                    elif addr.family == psutil.AF_LINK:
+                        mac_address = addr.address
+                
+                # Get interface status and MTU
+                is_up = False
+                mtu = None
+                if interface_name in net_if_stats:
+                    stats = net_if_stats[interface_name]
+                    is_up = stats.isup
+                    mtu = stats.mtu
+                
+                # Only include interfaces that are up or have IP addresses
+                if is_up or ipv4_addresses or ipv6_addresses:
+                    interfaces.append(NetworkInterface(
+                        name=interface_name,
+                        ipv4_addresses=ipv4_addresses,
+                        ipv6_addresses=ipv6_addresses,
+                        mac_address=mac_address,
+                        is_up=is_up,
+                        mtu=mtu
+                    ))
+        except Exception as e:
+            logger.error(f"Error getting network interfaces: {e}")
+        
+        return interfaces
+    
+    def get_public_ip(self) -> Optional[str]:
+        """Get public IP address using external service."""
+        services = [
+            'https://api.ipify.org',
+            'https://icanhazip.com',
+            'https://ifconfig.me/ip',
+            'https://checkip.amazonaws.com'
+        ]
+        
+        for service in services:
+            try:
+                with urllib.request.urlopen(service, timeout=3) as response:
+                    ip = response.read().decode('utf-8').strip()
+                    # Validate IP address format (IPv4 or IPv6)
+                    try:
+                        socket.inet_aton(ip)  # IPv4
+                    except socket.error:
+                        try:
+                            socket.inet_pton(socket.AF_INET6, ip)  # IPv6
+                        except (socket.error, ValueError):
+                            continue  # Invalid IP format
+                    return ip
+            except Exception as e:
+                logger.debug(f"Failed to get public IP from {service}: {e}")
+                continue
+        
+        return None
+    
     def get_system_info(self) -> SystemInfo:
         """Get general system information."""
         boot_time = datetime.fromtimestamp(psutil.boot_time())
@@ -327,6 +406,10 @@ class SystemMonitor:
                     except Exception:
                         pass
         
+        # Get network interfaces and public IP
+        network_interfaces = self.get_network_interfaces()
+        public_ip = self.get_public_ip()
+        
         return SystemInfo(
             hostname=hostname,
             os=platform.system(),
@@ -338,7 +421,9 @@ class SystemMonitor:
             cpu_cores=psutil.cpu_count(logical=False),
             total_memory=psutil.virtual_memory().total,
             uptime=uptime,
-            boot_time=boot_time
+            boot_time=boot_time,
+            network_interfaces=network_interfaces,
+            public_ip=public_ip
         )
     
     def reboot_system(self) -> bool:

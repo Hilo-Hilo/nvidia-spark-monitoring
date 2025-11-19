@@ -94,6 +94,16 @@ class HistoricalMetricsResponse(BaseModel):
     count: int
 
 
+class NetworkInterface(BaseModel):
+    """Network interface information model."""
+    name: str
+    ipv4_addresses: List[str]
+    ipv6_addresses: List[str]
+    mac_address: Optional[str] = None
+    is_up: bool
+    mtu: Optional[int] = None
+
+
 class SystemInfo(BaseModel):
     """System information model."""
     hostname: str
@@ -107,4 +117,6 @@ class SystemInfo(BaseModel):
     total_memory: int
     uptime: float
     boot_time: datetime
+    network_interfaces: List[NetworkInterface] = []
+    public_ip: Optional[str] = None
 

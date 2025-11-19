@@ -130,6 +130,80 @@ export function SystemInfoCard() {
               <span className="font-medium">{totalMemoryGB} GB</span>
             </div>
           </div>
+
+          {/* Network Information Section */}
+          {(info.public_ip || (info.network_interfaces && info.network_interfaces.length > 0)) && (
+            <div className="mt-6 pt-6 border-t">
+              <h3 className="text-sm font-semibold mb-4 text-muted-foreground uppercase tracking-wider">Network Information</h3>
+              
+              {/* Public IP */}
+              {info.public_ip && (
+                <div className="mb-4">
+                  <span className="text-muted-foreground block text-xs uppercase tracking-wider mb-1">Public IP</span>
+                  <span className="font-medium font-mono">{info.public_ip}</span>
+                </div>
+              )}
+
+              {/* Network Interfaces */}
+              {info.network_interfaces && info.network_interfaces.length > 0 && (
+                <div className="space-y-4">
+                  {info.network_interfaces.map((iface, idx) => (
+                    <div key={idx} className="p-3 bg-muted/50 rounded-lg border">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-sm">{iface.name}</span>
+                        <div className="flex items-center gap-2 text-xs">
+                          {iface.is_up ? (
+                            <span className="px-2 py-0.5 bg-green-500/20 text-green-700 dark:text-green-400 rounded">UP</span>
+                          ) : (
+                            <span className="px-2 py-0.5 bg-gray-500/20 text-gray-700 dark:text-gray-400 rounded">DOWN</span>
+                          )}
+                          {iface.mtu && (
+                            <span className="text-muted-foreground">MTU: {iface.mtu}</span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-1.5 text-xs">
+                        {/* MAC Address */}
+                        {iface.mac_address && (
+                          <div>
+                            <span className="text-muted-foreground">MAC: </span>
+                            <span className="font-mono font-medium">{iface.mac_address}</span>
+                          </div>
+                        )}
+                        
+                        {/* IPv4 Addresses */}
+                        {iface.ipv4_addresses.length > 0 && (
+                          <div>
+                            <span className="text-muted-foreground">IPv4: </span>
+                            {iface.ipv4_addresses.map((ip, ipIdx) => (
+                              <span key={ipIdx} className="font-mono font-medium">
+                                {ip}
+                                {ipIdx < iface.ipv4_addresses.length - 1 && ', '}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* IPv6 Addresses */}
+                        {iface.ipv6_addresses.length > 0 && (
+                          <div>
+                            <span className="text-muted-foreground">IPv6: </span>
+                            {iface.ipv6_addresses.map((ip, ipIdx) => (
+                              <span key={ipIdx} className="font-mono font-medium">
+                                {ip}
+                                {ipIdx < iface.ipv6_addresses.length - 1 && ', '}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 

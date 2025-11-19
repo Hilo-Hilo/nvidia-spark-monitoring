@@ -2,6 +2,14 @@
 
 A comprehensive real-time system monitoring dashboard for NVIDIA Spark systems. This dashboard provides live visualization of system resources including CPU, Memory, Disk, Network, and GPU metrics, along with advanced process management capabilities.
 
+## Screenshots
+
+![Dashboard Overview](./images/1.png)
+
+![System Information and Network Details](./images/2.png)
+
+![Metrics Display](./images/3.png)
+
 **Fully Generic & Deployable**: This repository contains no hardcoded values and can be deployed to any NVIDIA Spark system (or any Linux system with Docker). All configuration is done through environment variables with sensible defaults. The only file that needs path customization is the optional `system-monitoring.service` file for automatic startup.
 
 ## Features
