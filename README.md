@@ -34,6 +34,22 @@ The dashboard provides real-time monitoring with an intuitive interface:
 - **Process Priority**: Set process priority levels (-20 to 19)
 - **Host Process Access**: Backend configured to access all host system processes
 
+### Docker Container Management (Authentication Required)
+- **Container List**: View all Docker containers (running and stopped)
+- **Container Actions**: Start, stop, restart, and remove containers
+- **Container Logs**: View last 100 log lines with download option
+- **Image Management**: Pull new images from Docker Hub or other registries
+- **Status Badges**: Visual indicators for container state (running, exited, paused, created)
+- **Search & Filter**: Filter by container name, image, ID, or status
+
+### Systemd Service Management (Authentication Required)
+- **Service List**: View all systemd services on the system
+- **Service Actions**: Start, stop, and restart services
+- **Boot Configuration**: Enable or disable services on system boot
+- **Service Logs**: View recent journal entries with download option
+- **Status Badges**: Visual indicators for service state (active, inactive, failed)
+- **Search & Filter**: Filter by service name, description, status, or boot state
+
 ### Authentication & Security
 - **User Registration**: Public registration endpoint for creating accounts
 - **JWT Authentication**: Secure token-based authentication
@@ -346,6 +362,10 @@ All configuration is done through environment variables with sensible defaults. 
   - Background collection runs continuously even without client connections
 - `HISTORICAL_DATA_RETENTION_DAYS`: Days to keep historical data (default: `30`)
   - Old data is automatically cleaned up daily
+- `SUDO_PASSWORD`: Password for sudo operations (default: empty)
+  - Required for systemd service management (start/stop/restart/enable/disable)
+  - Leave empty if not using the Services page
+  - ⚠️ Store securely - consider using Docker secrets in production
 
 **Frontend Configuration:**
 - `NEXT_PUBLIC_API_URL`: Backend API URL (auto-detected, usually not needed)
@@ -396,6 +416,25 @@ All configuration is done through environment variables with sensible defaults. 
   - Returns: `{"processes": [...], "total": number}`
 - `POST /api/v1/processes/{pid}/kill` - Kill a process by PID
 - `POST /api/v1/processes/{pid}/priority?priority={-20..19}` - Set process priority
+
+**Docker Container Management:**
+- `GET /api/v1/containers/` - List all containers
+- `POST /api/v1/containers/{id}/start` - Start a container
+- `POST /api/v1/containers/{id}/stop` - Stop a container
+- `POST /api/v1/containers/{id}/restart` - Restart a container
+- `DELETE /api/v1/containers/{id}` - Remove a container
+- `GET /api/v1/containers/{id}/logs` - Get container logs
+- `GET /api/v1/containers/images/list` - List Docker images
+- `POST /api/v1/containers/images/pull` - Pull an image from registry
+
+**Systemd Service Management:**
+- `GET /api/v1/services/` - List all systemd services
+- `POST /api/v1/services/{name}/start` - Start a service
+- `POST /api/v1/services/{name}/stop` - Stop a service
+- `POST /api/v1/services/{name}/restart` - Restart a service
+- `POST /api/v1/services/{name}/enable` - Enable service on boot
+- `POST /api/v1/services/{name}/disable` - Disable service on boot
+- `GET /api/v1/services/{name}/logs` - Get service logs from journalctl
 
 **Historical Data:**
 - `GET /api/v1/history/metrics?start_time={ISO8601}&end_time={ISO8601}&metric_type={optional}&limit={optional}` - Get historical metrics

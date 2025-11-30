@@ -2,11 +2,15 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (including D-Bus for systemd integration)
 RUN apt-get update && apt-get install -y \
     gcc \
     util-linux \
     curl \
+    libdbus-1-dev \
+    libdbus-glib-1-dev \
+    pkg-config \
+    systemd \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python dependencies

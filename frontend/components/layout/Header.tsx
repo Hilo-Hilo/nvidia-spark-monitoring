@@ -58,6 +58,22 @@ export function Header() {
                   >
                     History
                   </Link>
+                  <Link
+                    href="/containers"
+                    className={`text-sm font-medium transition-colors hover:text-primary ${
+                      pathname === '/containers' ? 'text-primary' : 'text-muted-foreground'
+                    }`}
+                  >
+                    Containers
+                  </Link>
+                  <Link
+                    href="/services"
+                    className={`text-sm font-medium transition-colors hover:text-primary ${
+                      pathname === '/services' ? 'text-primary' : 'text-muted-foreground'
+                    }`}
+                  >
+                    Services
+                  </Link>
                 </>
               )}
             </nav>

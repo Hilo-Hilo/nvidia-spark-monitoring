@@ -29,11 +29,16 @@ services:
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
       CORS_ORIGINS: '["*"]'
       METRICS_COLLECTION_INTERVAL: ${METRICS_COLLECTION_INTERVAL:-2}
+      SUDO_PASSWORD: ${SUDO_PASSWORD:-}
     volumes:
       - ./backend:/app
       - /etc/passwd:/etc/passwd:ro
       - /etc/group:/etc/group:ro
       - /etc/hostname:/etc/host_hostname:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/dbus:/var/run/dbus
+      - /run/systemd:/run/systemd
+      - /var/log/journal:/var/log/journal:ro
     privileged: true
     cap_add:
       - SYS_BOOT

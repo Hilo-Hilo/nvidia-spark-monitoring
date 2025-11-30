@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.config import settings
 from app.database import engine, Base
-from app.routers import metrics, processes, history, auth
+from app.routers import metrics, processes, history, auth, containers, services
 from app.services.data_collector import data_collector
 
 # Create database tables
@@ -59,6 +59,8 @@ app.include_router(metrics.router, prefix=f"{settings.API_V1_PREFIX}/metrics", t
 app.include_router(processes.router, prefix=f"{settings.API_V1_PREFIX}/processes", tags=["processes"])
 app.include_router(history.router, prefix=f"{settings.API_V1_PREFIX}/history", tags=["history"])
 app.include_router(auth.router, prefix=f"{settings.API_V1_PREFIX}/auth", tags=["auth"])
+app.include_router(containers.router, prefix=f"{settings.API_V1_PREFIX}/containers", tags=["containers"])
+app.include_router(services.router, prefix=f"{settings.API_V1_PREFIX}/services", tags=["services"])
 
 
 @app.get("/")
