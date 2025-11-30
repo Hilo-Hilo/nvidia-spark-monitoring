@@ -48,7 +48,9 @@ The dashboard provides real-time monitoring with an intuitive interface:
 - **Boot Configuration**: Enable or disable services on system boot
 - **Service Logs**: View recent journal entries with download option
 - **Status Badges**: Visual indicators for service state (active, inactive, failed)
-- **Search & Filter**: Filter by service name, description, status, or boot state
+- **Service Type Filtering**: Filter by System services (core OS services) or User services (custom/user-installed)
+- **Service Type Badges**: Visual indicators showing whether a service is a System or User service
+- **Search & Filter**: Filter by service name, description, status, boot state, or service type
 
 ### Authentication & Security
 - **User Registration**: Public registration endpoint for creating accounts
@@ -83,6 +85,11 @@ The dashboard provides real-time monitoring with an intuitive interface:
 - **Reverse Proxy**: Nginx for serving frontend and proxying API requests
 - **Deployment**: Docker Compose with auto-restart policies for 24/7 availability
 - **Process Access**: Backend uses host PID namespace to access all system processes
+- **Docker Integration**: Backend mounts Docker socket (`/var/run/docker.sock`) to manage containers
+- **Systemd Integration**: Backend uses D-Bus to communicate with host systemd services
+  - Mounts host D-Bus socket (`/var/run/dbus`) and systemd directories
+  - Uses `dbus-python` library for D-Bus communication
+  - Includes `journalctl` for viewing service logs from host journal
 - **Background Services**: 
   - Metrics collection runs every 2 seconds (configurable via `METRICS_COLLECTION_INTERVAL`)
   - Data cleanup runs every 24 hours to remove old historical data
@@ -271,6 +278,7 @@ To ensure the monitoring dashboard automatically starts after system reboots:
    
    # Replace /path/to/nvidia-spark-monitoring with your actual project path
    # For example: /home/username/nvidia-spark-monitoring
+   # IMPORTANT: The WorkingDirectory must point to the actual project directory
    ```
 
 2. **Install and enable the service**:
@@ -298,6 +306,8 @@ To ensure the monitoring dashboard automatically starts after system reboots:
    ```
 
 **Note**: The systemd service ensures your monitoring dashboard automatically restarts after system reboots, including when you use the "Restart System" button in the dashboard.
+
+**Troubleshooting**: If the service shows as "failed" with error "No such file or directory" for WorkingDirectory, ensure the path in `system-monitoring.service` matches your actual project directory path.
 
 ### 6. Access the Dashboard
 
@@ -335,13 +345,26 @@ To ensure the monitoring dashboard automatically starts after system reboots:
 The `docker-compose.yml` file configures:
 
 - **PostgreSQL Database** (port 5432): Stores user accounts and historical metrics
-- **FastAPI Backend** (port 8000): API server with host process access (`pid: "host"`) and NVIDIA GPU access
+- **FastAPI Backend** (port 8000): API server with:
+  - Host process access (`pid: "host"`)
+  - NVIDIA GPU access (`deploy.resources.reservations.devices`)
+  - Docker socket mount (`/var/run/docker.sock`) for container management
+  - D-Bus socket mount (`/var/run/dbus`) for systemd communication
+  - Systemd directories mount (`/run/systemd`, `/var/log/journal`, `/etc/systemd`) for service management
 - **Next.js Frontend** (port 3000): React-based dashboard
 - **Nginx Reverse Proxy** (port 80): Routes requests and serves frontend
 
 All services are configured with `restart: unless-stopped` for 24/7 availability.
 
 **GPU Configuration**: The backend container is configured with NVIDIA GPU access using the `deploy.resources.reservations.devices` section. This enables GPU metrics collection for systems with NVIDIA GPUs. On systems without GPUs, the dashboard will simply not display GPU metrics.
+
+**Docker Integration**: The backend mounts the Docker socket (`/var/run/docker.sock`) to enable container management operations from within the container.
+
+**Systemd Integration**: The backend mounts several host directories to enable systemd service management:
+- `/var/run/dbus` - D-Bus system socket for communicating with systemd
+- `/run/systemd` - Systemd runtime directory
+- `/var/log/journal` - Journal logs (read-only) for viewing service logs
+- `/etc/systemd` - Systemd configuration directory (read-only)
 
 ### Environment Variables
 
@@ -470,6 +493,52 @@ All configuration is done through environment variables with sensible defaults. 
    - Sleeping status
 6. **Pause/Resume**: Click the pause button to stop auto-refresh, resume to continue
 7. **Kill Process**: Click "Kill" button and confirm to terminate a process
+
+### Managing Docker Containers
+
+1. **Login**: Navigate to `/login` and authenticate
+2. **Access Containers**: Click "Containers" in the navigation header
+3. **View Containers**: See all Docker containers with:
+   - Container name, image, status, ports, and creation date
+   - Status badges (running, exited, paused, created)
+4. **Search & Filter**: 
+   - Search by container name, image, ID, or status
+   - Filter by status (all, running, stopped)
+   - Toggle "Show All" to include stopped containers
+5. **Container Actions**:
+   - **Start**: Start a stopped container
+   - **Stop**: Stop a running container
+   - **Restart**: Restart a container
+   - **Remove**: Delete a container (with confirmation)
+   - **View Logs**: See last 100 log lines with download option
+6. **Image Management**:
+   - **Pull Image**: Pull new images from Docker Hub or other registries
+   - **List Images**: View all available Docker images
+
+### Managing Systemd Services
+
+1. **Login**: Navigate to `/login` and authenticate
+2. **Access Services**: Click "Services" in the navigation header
+3. **View Services**: See all systemd services with:
+   - Service name, description, status, boot configuration
+   - Status badges (active, inactive, failed, activating, deactivating)
+   - Type badges (System or User service)
+4. **Search & Filter**: 
+   - Search by service name or description
+   - Filter by status (all, active, inactive, failed)
+   - Filter by boot state (all, enabled, disabled)
+   - Filter by service type (all, system, user)
+5. **Service Actions**:
+   - **Start**: Start a stopped service
+   - **Stop**: Stop a running service
+   - **Restart**: Restart a service
+   - **Enable/Disable**: Control whether service starts on boot
+   - **View Logs**: See recent journal entries with download option
+6. **Service Types**:
+   - **System Services**: Core OS services (systemd-*, docker, NetworkManager, etc.)
+   - **User Services**: User-installed or custom services (like system-monitoring)
+
+**Note**: The `system-monitoring` service itself can be managed from this page. If it shows as "failed", check that the `WorkingDirectory` in `/etc/systemd/system/system-monitoring.service` points to the correct project directory.
 
 ### Viewing Historical Data
 
@@ -652,6 +721,59 @@ GPU metrics require both NVIDIA drivers on the host and proper GPU access config
 - **NVIDIA Container Toolkit not installed**: Install with `sudo apt-get install -y nvidia-container-toolkit && sudo systemctl restart docker`
 - **Docker Compose version too old**: GPU support requires Docker Compose V2 (plugin version). Update if using standalone docker-compose.
 
+### Service Logs Not Working
+
+If clicking "View Logs" on the Services page shows "Failed to fetch logs":
+
+1. **Verify journalctl is installed in backend container**:
+   ```bash
+   sudo docker exec monitoring_backend which journalctl
+   # Should show: /usr/bin/journalctl
+   ```
+
+2. **Verify journal directory is mounted**:
+   ```bash
+   sudo docker exec monitoring_backend ls -la /var/log/journal/
+   # Should show journal subdirectories
+   ```
+
+3. **Check docker-compose.yml has required volumes**:
+   ```yaml
+   volumes:
+     - /var/run/dbus:/var/run/dbus
+     - /run/systemd:/run/systemd
+     - /var/log/journal:/var/log/journal:ro
+   ```
+
+4. **Rebuild backend if needed**:
+   ```bash
+   sudo docker compose build backend
+   sudo docker compose up -d backend
+   ```
+
+### Systemd Service Management Not Working
+
+If the Services page shows errors or cannot list/control services:
+
+1. **Verify D-Bus socket is mounted**:
+   ```bash
+   sudo docker exec monitoring_backend ls -la /var/run/dbus/
+   # Should show system_bus_socket
+   ```
+
+2. **Check backend logs for D-Bus errors**:
+   ```bash
+   sudo docker compose logs backend | grep -i dbus
+   ```
+
+3. **Verify dbus-python is installed**:
+   ```bash
+   sudo docker exec monitoring_backend python -c "import dbus; print('OK')"
+   # Should print: OK
+   ```
+
+4. **Ensure docker-compose.yml has D-Bus volumes** (see Service Logs section above)
+
 ### Authentication Issues
 
 1. **Registration fails**: Check backend logs for database errors
@@ -759,8 +881,10 @@ sudo docker compose down --rmi all
 
 ## Technology Stack
 
-- **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS, shadcn/ui
 - **Backend**: FastAPI, Python 3.11, SQLAlchemy, psutil, pynvml
+- **Container Management**: Docker SDK (docker-py)
+- **Systemd Integration**: dbus-python, systemd (journalctl)
 - **Database**: PostgreSQL 15
 - **Reverse Proxy**: Nginx
 - **Containerization**: Docker, Docker Compose
