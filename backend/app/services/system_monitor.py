@@ -34,6 +34,10 @@ class SystemMonitor:
         self._network_io_prev_time = time.time()
         self._network_io_pernic_prev: Dict[str, Dict[str, int]] = {}
         self._network_io_pernic_prev_time = time.time()
+        # Cache for public IP with TTL
+        self._public_ip_cache: Optional[str] = None
+        self._public_ip_cache_time: float = 0
+        self._public_ip_cache_ttl: float = 300  # 5 minutes TTL
     
     def get_cpu_metrics(self) -> CPUMetrics:
         """Get CPU metrics."""
@@ -365,7 +369,12 @@ class SystemMonitor:
         return interfaces
     
     def get_public_ip(self) -> Optional[str]:
-        """Get public IP address using external service."""
+        """Get public IP address using external service with caching."""
+        # Check if we have a valid cached result
+        current_time = time.time()
+        if self._public_ip_cache is not None and (current_time - self._public_ip_cache_time) < self._public_ip_cache_ttl:
+            return self._public_ip_cache
+        
         services = [
             'https://api.ipify.org',
             'https://icanhazip.com',
@@ -385,6 +394,9 @@ class SystemMonitor:
                             socket.inet_pton(socket.AF_INET6, ip)  # IPv6
                         except (socket.error, ValueError):
                             continue  # Invalid IP format
+                    # Cache the result
+                    self._public_ip_cache = ip
+                    self._public_ip_cache_time = current_time
                     return ip
             except Exception as e:
                 logger.debug(f"Failed to get public IP from {service}: {e}")

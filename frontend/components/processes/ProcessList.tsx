@@ -128,7 +128,7 @@ export function ProcessList() {
               <CardTitle>
                 Running Processes ({filteredProcesses.length} / {processes.length})
               </CardTitle>
-              <InfoIcon content="This table shows all running processes on the system. CPU % represents the percentage of a single CPU core being used by this process (can exceed 100% on multi-core systems if using multiple cores). Memory % shows the percentage of total system RAM used by this process. Status indicates whether the process is actively running or sleeping/waiting. You can search, filter, and manage processes from this interface." />
+              <InfoIcon title="Running Processes" content="This table shows all running processes on the system. CPU % represents the percentage of a single CPU core being used by this process (can exceed 100% on multi-core systems if using multiple cores). Memory % shows the percentage of total system RAM used by this process. Status indicates whether the process is actively running or sleeping/waiting. You can search, filter, and manage processes from this interface." />
             </div>
             <Button
               variant={isPaused ? "default" : "outline"}
@@ -182,13 +182,13 @@ export function ProcessList() {
                   <TableHead>
                     <div className="flex items-center gap-1">
                       CPU %
-                      <InfoIcon content="CPU usage percentage for this process. On multi-core systems, this can exceed 100% if the process uses multiple cores. For example, 200% means the process is using 2 CPU cores at 100% each." className="h-3 w-3" />
+                      <InfoIcon title="CPU %" content="CPU usage percentage for this process. On multi-core systems, this can exceed 100% if the process uses multiple cores. For example, 200% means the process is using 2 CPU cores at 100% each." className="h-3 w-3" />
                     </div>
                   </TableHead>
                   <TableHead>
                     <div className="flex items-center gap-1">
                       Memory %
-                      <InfoIcon content="Memory usage percentage shows how much of the total system RAM this process is using. This is calculated as (process memory / total system memory) × 100%." className="h-3 w-3" />
+                      <InfoIcon title="Memory %" content="Memory usage percentage shows how much of the total system RAM this process is using. This is calculated as (process memory / total system memory) × 100%." className="h-3 w-3" />
                     </div>
                   </TableHead>
                   <TableHead>Status</TableHead>

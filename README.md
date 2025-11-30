@@ -44,7 +44,7 @@ The dashboard provides real-time monitoring with an intuitive interface:
 - **Metrics History**: Query historical system metrics by time range
 - **Process History**: View process execution history and lifecycle
 - **History Page**: Interactive charts displaying historical metrics with:
-  - Date range selection (presets: Last Hour, Last 24 Hours, Last Week, Last Month, or custom range)
+  - Date range selection (presets: Last 5/10/30 Minutes, Last Hour, Last 24 Hours, Last Week, Last Month, or custom range)
   - CPU metrics charts (usage percentage and frequency)
   - Memory metrics charts (usage percentage and capacity)
   - Disk metrics charts (usage percentage and capacity)
@@ -437,7 +437,7 @@ All configuration is done through environment variables with sensible defaults. 
 1. **Login**: Navigate to `/login` and authenticate
 2. **Access History**: Click "History" in the navigation header
 3. **Select Time Range**: 
-   - Use quick presets (Last Hour, Last 24 Hours, Last Week, Last Month)
+   - Use quick presets (Last 5 Minutes, Last 10 Minutes, Last 30 Minutes, Last Hour, Last 24 Hours, Last Week, Last Month)
    - Or select "Custom Range" to specify exact start and end times
 4. **View Charts**: The page displays interactive charts for:
    - **CPU Metrics**: CPU usage percentage and frequency over time
@@ -617,7 +617,7 @@ GPU metrics require both NVIDIA drivers on the host and proper GPU access config
 
 1. **Registration fails**: Check backend logs for database errors
 2. **Login fails**: Verify username/password are correct
-3. **Token expired**: Tokens expire after 30 minutes - log in again
+3. **Token expired**: Tokens expire after 7 days - log in again
 4. **401 Unauthorized**: Ensure you're including the Bearer token in requests:
    ```
    Authorization: Bearer <your-token>

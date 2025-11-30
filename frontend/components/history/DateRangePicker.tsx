@@ -79,6 +79,15 @@ function getCurrentUTC(): Date {
 }
 
 /**
+ * Subtract minutes from a UTC date
+ */
+function subMinutesUTC(date: Date, minutes: number): Date {
+  const result = new Date(date);
+  result.setUTCMinutes(result.getUTCMinutes() - minutes);
+  return result;
+}
+
+/**
  * Subtract hours from a UTC date
  */
 function subHoursUTC(date: Date, hours: number): Date {
@@ -116,6 +125,9 @@ export function DateRangePicker({ startTime, endTime, onRangeChange, timezone = 
   const [showCustom, setShowCustom] = useState(false);
 
   const presets = [
+    { label: 'Last 5 Minutes', getRange: () => ({ start: subMinutesUTC(getCurrentUTC(), 5), end: getCurrentUTC() }) },
+    { label: 'Last 10 Minutes', getRange: () => ({ start: subMinutesUTC(getCurrentUTC(), 10), end: getCurrentUTC() }) },
+    { label: 'Last 30 Minutes', getRange: () => ({ start: subMinutesUTC(getCurrentUTC(), 30), end: getCurrentUTC() }) },
     { label: 'Last Hour', getRange: () => ({ start: subHoursUTC(getCurrentUTC(), 1), end: getCurrentUTC() }) },
     { label: 'Last 24 Hours', getRange: () => ({ start: subDaysUTC(getCurrentUTC(), 1), end: getCurrentUTC() }) },
     { label: 'Last Week', getRange: () => ({ start: subWeeksUTC(getCurrentUTC(), 1), end: getCurrentUTC() }) },

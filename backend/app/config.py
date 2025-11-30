@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     API_V1_PREFIX: str = "/api/v1"
     SECRET_KEY: str = "change-me-in-production-generate-a-strong-random-key"
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days
     
     # Database Settings
     DATABASE_URL: str = "postgresql://postgres:postgres@db:5432/monitoring"

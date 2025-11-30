@@ -78,7 +78,7 @@ export function Dashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>CPU Usage</CardTitle>
-              <InfoIcon content="CPU usage percentage represents the average utilization across all CPU cores. A value of 100% means all cores are fully utilized. The percentage is calculated as the average of all cores, not per-core (each core can be up to 100%)." />
+              <InfoIcon title="CPU Usage" content="CPU usage percentage represents the average utilization across all CPU cores. A value of 100% means all cores are fully utilized. The percentage is calculated as the average of all cores, not per-core (each core can be up to 100%)." />
             </div>
           </CardHeader>
           <CardContent>
@@ -98,7 +98,7 @@ export function Dashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Memory Usage</CardTitle>
-              <InfoIcon content="Memory usage shows the percentage of RAM currently in use. 'Used' includes memory actively used by applications and system processes. 'Available' is memory that can be allocated to new processes immediately. Total memory is the physical RAM installed in the system." />
+              <InfoIcon title="Memory Usage" content="Memory usage shows the percentage of RAM currently in use. 'Used' includes memory actively used by applications and system processes. 'Available' is memory that can be allocated to new processes immediately. Total memory is the physical RAM installed in the system." />
             </div>
           </CardHeader>
           <CardContent>
@@ -118,7 +118,7 @@ export function Dashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Disk Usage</CardTitle>
-              <InfoIcon content="Disk usage shows the percentage of storage space used on the primary disk partition. 'Used' is the amount of space occupied by files and data. 'Free' is the remaining space available for new files. This metric monitors the root filesystem where the system is installed." />
+              <InfoIcon title="Disk Usage" content="Disk usage shows the percentage of storage space used on the primary disk partition. 'Used' is the amount of space occupied by files and data. 'Free' is the remaining space available for new files. This metric monitors the root filesystem where the system is installed." />
             </div>
           </CardHeader>
           <CardContent>
@@ -148,7 +148,7 @@ export function Dashboard() {
                   <option value="MB/s">MB/s</option>
                   <option value="Mbps">Mbps</option>
                 </select>
-                <InfoIcon content="Network I/O shows live data transfer rates calculated directly from the system using native Linux /proc/net/dev. 'Sent' is the rate of data transmitted from this system. 'Received' is the rate of data received by this system. Rates are calculated on the backend from system counters and automatically adapt units (KB/s, MB/s, or Kbps, Mbps) based on the transfer speed. You can toggle between MB/s (megabytes per second) and Mbps (megabits per second) using the dropdown." />
+                <InfoIcon title="Network I/O" content="Network I/O shows live data transfer rates calculated directly from the system using native Linux /proc/net/dev. 'Sent' is the rate of data transmitted from this system. 'Received' is the rate of data received by this system. Rates are calculated on the backend from system counters and automatically adapt units (KB/s, MB/s, or Kbps, Mbps) based on the transfer speed. You can toggle between MB/s (megabytes per second) and Mbps (megabits per second) using the dropdown." />
               </div>
             </div>
           </CardHeader>
@@ -175,7 +175,7 @@ export function Dashboard() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>GPU Metrics</CardTitle>
-                <InfoIcon content="GPU utilization shows the percentage of GPU compute resources currently in use. GPU memory percentage shows how much of the GPU's dedicated VRAM is being used. Temperature is the current GPU core temperature. These metrics are specific to NVIDIA GPUs." />
+                <InfoIcon title="GPU Metrics" content="GPU utilization shows the percentage of GPU compute resources currently in use. GPU memory percentage shows how much of the GPU's dedicated VRAM is being used. Temperature is the current GPU core temperature. These metrics are specific to NVIDIA GPUs." />
               </div>
             </CardHeader>
             <CardContent>
