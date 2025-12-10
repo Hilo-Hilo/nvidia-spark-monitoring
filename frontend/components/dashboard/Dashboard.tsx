@@ -83,9 +83,9 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <p className="text-2xl font-bold">{metrics.cpu.percent.toFixed(1)}%</p>
-              <p className="text-sm text-muted-foreground">Cores: {metrics.cpu.count}</p>
-              {metrics.cpu.freq_current && (
+              <p className="text-2xl font-bold">{metrics.cpu?.percent?.toFixed(1) ?? 'N/A'}%</p>
+              <p className="text-sm text-muted-foreground">Cores: {metrics.cpu?.count ?? 'N/A'}</p>
+              {metrics.cpu?.freq_current && (
                 <p className="text-sm text-muted-foreground">
                   Frequency: {(metrics.cpu.freq_current / 1000).toFixed(2)} GHz
                 </p>
@@ -103,12 +103,12 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <p className="text-2xl font-bold">{metrics.memory.percent.toFixed(1)}%</p>
+              <p className="text-2xl font-bold">{metrics.memory?.percent?.toFixed(1) ?? 'N/A'}%</p>
               <p className="text-sm text-muted-foreground">
-                Used: {(metrics.memory.used / 1024 / 1024 / 1024).toFixed(2)} GB / {(metrics.memory.total / 1024 / 1024 / 1024).toFixed(2)} GB
+                Used: {metrics.memory?.used ? (metrics.memory.used / 1024 / 1024 / 1024).toFixed(2) : 'N/A'} GB / {metrics.memory?.total ? (metrics.memory.total / 1024 / 1024 / 1024).toFixed(2) : 'N/A'} GB
               </p>
               <p className="text-sm text-muted-foreground">
-                Available: {(metrics.memory.available / 1024 / 1024 / 1024).toFixed(2)} GB
+                Available: {metrics.memory?.available ? (metrics.memory.available / 1024 / 1024 / 1024).toFixed(2) : 'N/A'} GB
               </p>
             </div>
           </CardContent>
@@ -123,12 +123,12 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <p className="text-2xl font-bold">{metrics.disk.percent.toFixed(1)}%</p>
+              <p className="text-2xl font-bold">{metrics.disk?.percent?.toFixed(1) ?? 'N/A'}%</p>
               <p className="text-sm text-muted-foreground">
-                Used: {(metrics.disk.used / 1024 / 1024 / 1024 / 1024).toFixed(2)} TB / {(metrics.disk.total / 1024 / 1024 / 1024 / 1024).toFixed(2)} TB
+                Used: {metrics.disk?.used ? (metrics.disk.used / 1024 / 1024 / 1024 / 1024).toFixed(2) : 'N/A'} TB / {metrics.disk?.total ? (metrics.disk.total / 1024 / 1024 / 1024 / 1024).toFixed(2) : 'N/A'} TB
               </p>
               <p className="text-sm text-muted-foreground">
-                Free: {(metrics.disk.free / 1024 / 1024 / 1024 / 1024).toFixed(2)} TB
+                Free: {metrics.disk?.free ? (metrics.disk.free / 1024 / 1024 / 1024 / 1024).toFixed(2) : 'N/A'} TB
               </p>
             </div>
           </CardContent>
@@ -156,15 +156,15 @@ export function Dashboard() {
             <div className="space-y-2">
               {/* Use backend-calculated rates directly from system */}
               <p className="text-sm text-muted-foreground">
-                Sent: <span className="text-foreground font-semibold">{formatNetworkRate(metrics.network.bytes_sent_rate)}</span>
+                Sent: <span className="text-foreground font-semibold">{metrics.network?.bytes_sent_rate != null ? formatNetworkRate(metrics.network.bytes_sent_rate) : 'N/A'}</span>
               </p>
               <p className="text-sm text-muted-foreground">
-                Received: <span className="text-foreground font-semibold">{formatNetworkRate(metrics.network.bytes_recv_rate)}</span>
+                Received: <span className="text-foreground font-semibold">{metrics.network?.bytes_recv_rate != null ? formatNetworkRate(metrics.network.bytes_recv_rate) : 'N/A'}</span>
               </p>
               <div className="pt-2 border-t text-xs text-muted-foreground">
-                <p>Total Sent: {(metrics.network.bytes_sent / 1024 / 1024).toFixed(2)} MB ({metrics.network.packets_sent.toLocaleString()} packets)</p>
-                <p>Total Received: {(metrics.network.bytes_recv / 1024 / 1024).toFixed(2)} MB ({metrics.network.packets_recv.toLocaleString()} packets)</p>
-                <p className="pt-1 text-xs">Packets: {metrics.network.packets_sent_rate.toFixed(1)} sent/s, {metrics.network.packets_recv_rate.toFixed(1)} recv/s</p>
+                <p>Total Sent: {metrics.network?.bytes_sent ? (metrics.network.bytes_sent / 1024 / 1024).toFixed(2) : 'N/A'} MB ({metrics.network?.packets_sent?.toLocaleString() ?? 'N/A'} packets)</p>
+                <p>Total Received: {metrics.network?.bytes_recv ? (metrics.network.bytes_recv / 1024 / 1024).toFixed(2) : 'N/A'} MB ({metrics.network?.packets_recv?.toLocaleString() ?? 'N/A'} packets)</p>
+                <p className="pt-1 text-xs">Packets: {metrics.network?.packets_sent_rate?.toFixed(1) ?? 'N/A'} sent/s, {metrics.network?.packets_recv_rate?.toFixed(1) ?? 'N/A'} recv/s</p>
               </div>
             </div>
           </CardContent>
